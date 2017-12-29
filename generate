@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # the project file layout is a template clone of http://www.davekuhlman.org/generateDS.html#id14
 # for which we run:
-git branch -D generated
-git checkout -b generated
+git branch -D generated_odoo
+git checkout -b generated_odoo
 
 SCHEMA_NAME='nfe'
 python quick_start.py --schema-name="$SCHEMA_NAME"
@@ -34,8 +34,12 @@ EOF
 
   rm -rf $gen_path
   mkdir -p $gen_path
+  local odoo_path=odoo/"$version"
+  mkdir -p $odoo_path
   touch "$lib_name"/__init__.py
   touch "$gen_path/__init__.py"
+
+  cp "schemas/$version"/*.xsd "$GENERATEDS_HOME"/odoo
 
   for f in "schemas/$version"/leiaute*.xsd;
   do
@@ -45,6 +49,19 @@ EOF
     # generateDS -o "$gen_path/$module_name".py -s "$gen_path/$module_name"_subs.py "$f"
     python3 "$GENERATEDS_HOME"/generateDS.py -o "$gen_path/$module_name".py "$f"
     autopep8 --in-place --aggressive -p3 "$gen_path/$module_name".py
+
+local current_dir=$(pwd)
+
+    cd "$GENERATEDS_HOME"/odoo
+    cp ../generateDS.py .
+    local dotted_version=$(echo $version | sed 's/_/\./g')
+    mv "$module_name"_"$dotted_version".xsd "$module_name"_"$version".xsd
+    ./gends_run_gen_odoo.py -f -v "$module_name"_"$version".xsd
+    autopep8 --in-place -p3 models.py
+    rm "$module_name"_"$version".py
+    mv models.py "$current_dir/$odoo_path/$module_name".py
+
+cd "$current_dir"
 
     module_name=$(echo $name | tr "/" "\n" | tail -n1)
     module_contents_part=$(cat  <<EOF
@@ -57,6 +74,8 @@ EOF
     echo "$module_contents_part" >> docs/module_contents.txt
 
   done
+  rm -f "$GENERATEDS_HOME"/odoo/*.xsd
+  rm -f "$GENERATEDS_HOME"/odoo/*lib.py
 }
 
 generate "v3_10" "http://www.nfe.fazenda.gov.br/portal/exibirArquivo.aspx?conteudo=fXShsIS6w2Q="
