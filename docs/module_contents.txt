@@ -1,9 +1,18 @@
 Module contents
 =================
-
-.. automodule:: {{schema_name}}lib
+.. automodule:: leiauteConsSitNFe
     :members:
     :undoc-members:
     :show-inheritance:
-
-
+.. automodule:: leiauteConsStatServ
+    :members:
+    :undoc-members:
+    :show-inheritance:
+.. automodule:: leiauteInutNFe
+    :members:
+    :undoc-members:
+    :show-inheritance:
+.. automodule:: leiauteNFe
+    :members:
+    :undoc-members:
+    :show-inheritance:
